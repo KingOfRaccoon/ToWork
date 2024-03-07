@@ -1,18 +1,15 @@
 package screens.start
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,11 +25,9 @@ import getResourceFile
 import io.kamel.core.utils.File
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
-import org.koin.compose.koinInject
-import viewmodel.UserDataViewModel
 
 @Composable
-fun GoToMainScreen(userDataViewModel: UserDataViewModel = koinInject()) {
+fun GoToMainScreen(navigateToMain: () -> Unit) {
     var file: File? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
@@ -63,11 +58,13 @@ fun GoToMainScreen(userDataViewModel: UserDataViewModel = koinInject()) {
                     val painterResource = asyncPainterResource(it)
                     KamelImage(painterResource,
                         contentDescription = "Compose",
-                        Modifier.weight(1f).padding(bottom = 4.dp),
+                        Modifier.weight(1f).padding(bottom = 24.dp),
                         onFailure = { throw it })
                 }
             }
-            CustomButton("Погнали!", Modifier.fillMaxWidth())
+            CustomButton("Погнали!", Modifier.fillMaxWidth()) {
+                navigateToMain()
+            }
         }
     }
 }

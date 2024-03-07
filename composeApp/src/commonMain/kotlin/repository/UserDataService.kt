@@ -3,7 +3,9 @@ package repository
 import io.ktor.http.HttpHeaders
 import model.Achievement
 import model.AchievementWithPicture
+import model.AnswerBot
 import model.Knowledge
+import model.LastModule
 import model.Message
 import model.Module
 import model.Page
@@ -14,7 +16,11 @@ import util.Postman
 import util.Resource
 
 class UserDataService(private val postman: Postman) {
-    private val baseUrl = "http://158.160.106.75:8081"
+    private val baseUrl = "http://158.160.35.221:8081"
+    private val baseBotUrl = "http://81.3.154.178:9027"
+
+    private val answerTag = "/process-question-and-get-answer"
+
     private val registrationTag = "/registration"
     private val tracksTag = "/tracks"
     private val knowledgeTag = "/knowledge"
@@ -22,13 +28,16 @@ class UserDataService(private val postman: Postman) {
     private val allAchievementsTag = "/get_all_achievements"
     private val usersWithProgressTag = "/users_with_progress"
     private val loginTag = "/login"
-    private val needRegistrationTag = "/needRegistration"
+    private val loginWithTokenTag = "/login_with_token"
+    private val needRegistrationTag = "/need_registration"
     private val userForRatingTag = "/users_with_progress_with_cc"
+    private val getLastModules = "/get_last_modules"
 
     private fun getPageInModuleTag(idTrack: Int, numberModuleInTrack: Int) =
         "/page_in_module/$idTrack/$numberModuleInTrack"
 
     private fun getModulesInTrackTag(idTrack: Int) = "/module/$idTrack"
+    private fun getUpdateCompletePage(idModule: Int) = "/update_number_complete_page/$idModule"
 
     // fullName = firstName + lastname
     suspend fun registrationUser(
@@ -45,7 +54,8 @@ class UserDataService(private val postman: Postman) {
 
     suspend fun getTracks(token: String): Resource<List<Track>> {
         return postman.get(
-            baseUrl, tracksTag,
+            baseUrl,
+            tracksTag,
             mapOf(HttpHeaders.Authorization to token)
         )
     }
@@ -99,7 +109,7 @@ class UserDataService(private val postman: Postman) {
         return postman.post(
             baseUrl,
             usersWithProgressTag,
-            null,
+            mapOf("headers" to mapOf(HttpHeaders.Authorization to token)),
             mapOf(HttpHeaders.Authorization to token)
         )
     }
@@ -108,7 +118,16 @@ class UserDataService(private val postman: Postman) {
         return postman.post(
             baseUrl,
             loginTag,
-            mapOf("username" to username, "password" to password)
+            mapOf("name" to username, "password" to password)
+        )
+    }
+
+    suspend fun loginWithToken(token: String): Resource<User> {
+        return postman.post(
+            baseUrl,
+            loginWithTokenTag,
+            mapOf("headers" to mapOf(HttpHeaders.Authorization to token)),
+            mapOf(HttpHeaders.Authorization to token)
         )
     }
 
@@ -116,7 +135,7 @@ class UserDataService(private val postman: Postman) {
         return postman.post(
             baseUrl,
             needRegistrationTag,
-            mapOf("email" to email)
+            mapOf("name" to email)
         )
     }
 
@@ -124,7 +143,30 @@ class UserDataService(private val postman: Postman) {
         return postman.post(
             baseUrl,
             userForRatingTag,
+            null,
             mapOf(HttpHeaders.Authorization to token)
         )
+    }
+
+    suspend fun getLastModules(token: String): Resource<List<LastModule>> {
+        return postman.post(
+            baseUrl,
+            getLastModules,
+            mapOf("headers" to mapOf(HttpHeaders.Authorization to token)),
+            mapOf(HttpHeaders.Authorization to token)
+        )
+    }
+
+    suspend fun updateCompletePage(token: String, idModule: Int): Resource<Message> {
+        return postman.post(
+            baseUrl,
+            getUpdateCompletePage(idModule),
+            mapOf("headers" to mapOf(HttpHeaders.Authorization to token)),
+            mapOf(HttpHeaders.Authorization to token)
+        )
+    }
+
+    suspend fun sendMessage(message: String): Resource<AnswerBot>{
+        return postman.post(baseBotUrl, "$answerTag?questions=$message", null)
     }
 }

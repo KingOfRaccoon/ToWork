@@ -29,7 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import elements.AnimatedCustomButton
+import elements.CustomButton
 import elements.CustomOutlinedTextField
 import elements.CustomText
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -40,7 +40,9 @@ import viewmodel.UserDataViewModel
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun RegistrationScreen(
-    userDataViewModel: UserDataViewModel = koinInject(), navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    navigateToChoiceAvatar: () -> Unit,
+    userDataViewModel: UserDataViewModel = koinInject(),
 ) {
     val buttonText = remember { mutableStateOf("Далее") }
     val password = userDataViewModel.passwordFlow.collectAsState()
@@ -48,7 +50,7 @@ fun RegistrationScreen(
     val scrollState = rememberScrollState()
 
     Scaffold(Modifier.fillMaxSize().systemBarsPadding(),
-        topBar = { TopAppBarEnterRegistration(navigateBack) }) {
+        topBar = { TopAppBarEnterRegistration { userDataViewModel.clearRegistration(); navigateBack() } }) {
         Column(
             Modifier.fillMaxSize().padding(it).padding(horizontal = 16.dp, vertical = 11.dp)
                 .verticalScroll(scrollState),
@@ -81,10 +83,13 @@ fun RegistrationScreen(
                 "Пароль",
                 password,
                 userDataViewModel::setNewPassword,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
             )
-            Spacer(Modifier.weight(1f))
-            AnimatedCustomButton(buttonText, Modifier.fillMaxWidth()) {
 
+            Spacer(Modifier.weight(1f))
+
+            CustomButton("Далее", Modifier.fillMaxWidth()) {
+                navigateToChoiceAvatar()
             }
         }
     }

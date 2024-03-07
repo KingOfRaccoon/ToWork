@@ -20,8 +20,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,24 +32,41 @@ import androidx.compose.ui.unit.dp
 import elements.AnimatedCustomButton
 import elements.CustomOutlinedTextField
 import elements.CustomText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
+import util.Resource
 import viewmodel.UserDataViewModel
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun AuthorizationScreen(
-    userDataViewModel: UserDataViewModel = koinInject(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    navigateToMain: () -> Unit,
+    viewModel: UserDataViewModel = koinInject(),
 ) {
-    val buttonText = remember { mutableStateOf("Далее") }
-    val email = userDataViewModel.emailFlow.collectAsState()
+    val password = viewModel.passwordFlow.collectAsState()
     val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    val user = viewModel.userFlow.collectAsState()
+    val buttonText = remember {
+        derivedStateOf {
+            when (user) {
+                is Resource.Error<*> -> "Попропбуйте снова"
+                is Resource.Loading<*> -> "Ожидайте"
+                is Resource.Success<*> -> "Успех!"
+                else -> "Далее"
+            }
+        }
+    }
 
     Scaffold(
         Modifier.fillMaxSize().systemBarsPadding(),
-        topBar = { TopAppBarEnterAuthorization(navigateBack) }
+        topBar = { TopAppBarEnterAuthorization { viewModel.clearRegistration(); navigateBack() } }
     ) {
         Column(
             Modifier.fillMaxSize().padding(it).padding(horizontal = 16.dp, vertical = 11.dp)
@@ -80,16 +98,23 @@ fun AuthorizationScreen(
 
             CustomOutlinedTextField(
                 "Пароль",
-                email,
-                userDataViewModel::setNewEmail,
-                modifier = Modifier.fillMaxWidth()
+                password,
+                viewModel::setNewPassword,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
             )
 
             Spacer(Modifier.weight(1f))
 
             AnimatedCustomButton(buttonText, Modifier.fillMaxWidth()) {
-
+                viewModel.authUser()
             }
+        }
+    }
+
+    if (user.value != null && user.value is Resource.Success) {
+        scope.launch(Dispatchers.IO) {
+            delay(300)
+            navigateToMain()
         }
     }
 }

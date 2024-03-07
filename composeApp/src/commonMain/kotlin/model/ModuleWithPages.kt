@@ -3,7 +3,7 @@ package model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Module(
+data class ModuleWithPages(
     val id: Int,
     val name: String,
     val quantityPage: Int = 0,
@@ -12,5 +12,6 @@ data class Module(
     val endContent: String,
     val numberInTrack: Int,
     val idTrack: Int,
-    var completePages: Int = 0
+    var completePages: Int = 0,
+    var pages: List<Page> = listOf()
 )

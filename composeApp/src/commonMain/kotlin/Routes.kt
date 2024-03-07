@@ -10,5 +10,8 @@ enum class Routes {
     Finish,
     ChoiceAvatar,
     InputName,
-    GoToMain
+    GoToMain,
+    Track,
+    Module,
+    Chat
 }

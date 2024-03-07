@@ -29,7 +29,9 @@ fun CustomButton(
     text: String,
     modifier: Modifier = Modifier,
     isEnabled: Boolean = true,
-    onClick: () -> Unit = {}
+    color: Color = Color.White,
+    textColor: Color = lightTextMain,
+    onClick: () -> Unit = {},
 ) {
     Button(
         onClick,
@@ -37,8 +39,8 @@ fun CustomButton(
         enabled = isEnabled,
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
-            backgroundColor = Color.White,
-            disabledBackgroundColor = Color.White.copy(0.09f),
+            backgroundColor = color,
+            disabledBackgroundColor = color.copy(0.09f),
             disabledContentColor = textSecondary
         )
     ) {
@@ -47,7 +49,7 @@ fun CustomButton(
             textStyle = MaterialTheme.typography.button.copy(fontWeight = FontWeight.SemiBold),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 5.dp),
-            textColor = lightTextMain
+            textColor = if (isEnabled) textColor else textSecondary
         )
     }
 }

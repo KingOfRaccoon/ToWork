@@ -96,7 +96,6 @@ fun OnBoardingScreen(
     viewModel: UserDataViewModel = koinInject(),
     navigateToEnterEmail: () -> Unit
 ) {
-    val user = viewModel.userFlow.collectAsState()
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState { viewModel.getOnBoardingsArray().size }
 
@@ -252,7 +251,7 @@ fun OnBoardingScreen(
                                 tint = lightTextMain
                             )
                             CustomText(
-                                "База\nзнаний ${user.value.data?.fullName ?: "test"}",
+                                "База\nзнаний",
                                 Modifier,
                                 MaterialTheme.typography.h2.copy(fontWeight = FontWeight.Black),
                                 TextAlign.Center,

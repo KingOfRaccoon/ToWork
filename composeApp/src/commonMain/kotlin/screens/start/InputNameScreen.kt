@@ -1,14 +1,8 @@
 package screens.start
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,17 +11,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,25 +29,43 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import elements.AnimatedCustomButton
 import elements.CustomButton
 import elements.CustomOutlinedTextField
 import elements.CustomText
-import model.Avatar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
+import util.Resource
 import viewmodel.UserDataViewModel
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun InputNameScreen(
-    userDataViewModel: UserDataViewModel = koinInject(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    navigateToFinish: () -> Unit,
+    viewModel: UserDataViewModel = koinInject()
 ) {
-    val imageUser = userDataViewModel.userImageFlow.collectAsState()
+    val imageUser = viewModel.userImageFlow.collectAsState()
     val scrollState = rememberScrollState()
-    val name = userDataViewModel.nameFlow.collectAsState()
-    val lastname = userDataViewModel.lastnameFlow.collectAsState()
+    val scope = rememberCoroutineScope()
+    val name = viewModel.nameFlow.collectAsState()
+    val lastname = viewModel.lastnameFlow.collectAsState()
+    val user = viewModel.userFlow.collectAsState()
+    val buttonText = remember {
+        derivedStateOf {
+            when (user) {
+                is Resource.Error<*> -> "Попропбуйте снова"
+                is Resource.Loading<*> -> "Ожидайте"
+                is Resource.Success<*> -> "Успех!"
+                else -> "Далее"
+            }
+        }
+    }
 
     Scaffold(
         Modifier.fillMaxSize().systemBarsPadding(),
@@ -92,19 +103,28 @@ fun InputNameScreen(
             CustomOutlinedTextField(
                 "Имя",
                 name,
-                userDataViewModel::setNewName,
+                viewModel::setNewName,
             )
 
             CustomOutlinedTextField(
                 "Фамилия",
                 lastname,
-                userDataViewModel::setNewLastname,
+                viewModel::setNewLastname,
                 modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
             )
 
             Spacer(Modifier.weight(1f))
 
-            CustomButton("Далее", Modifier.fillMaxWidth())
+            AnimatedCustomButton(buttonText, Modifier.fillMaxWidth()){
+                viewModel.registrationUser()
+            }
+        }
+    }
+
+    if (user.value != null && user.value is Resource.Success){
+        scope.launch(Dispatchers.IO) {
+            delay(300)
+            navigateToFinish()
         }
     }
 }

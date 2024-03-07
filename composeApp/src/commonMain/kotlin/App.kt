@@ -1,6 +1,7 @@
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import moe.tlaster.precompose.PreComposeApp
 import moe.tlaster.precompose.navigation.NavHost
@@ -38,41 +39,58 @@ fun NavController() {
     ) {
         group(Routes.Start.name, Routes.Splash.name) {
             scene(Routes.Splash.name) {
-                SplashScreen { navigator.navigate(Routes.OnBoarding.name) }
-            }
-
-            scene(Routes.EnterEmail.name) {
-                EmailEnterScreen(navigateToAuthorization = { navigator.navigate(Routes.Authorization.name) }) {
-                    navigator.navigate(Routes.Registration.name)
-                }
+                SplashScreen(
+                    { navigator.navigate(Routes.OnBoarding.name) },
+                    { navigator.navigate(Routes.Main.name) },
+                    { navigator.navigate(Routes.EnterEmail.name) }
+                )
             }
 
             scene(Routes.OnBoarding.name) {
-                OnBoardingScreen { navigator.navigate(Routes.Authorization.name) }
+                OnBoardingScreen { navigator.navigate(Routes.EnterEmail.name) }
+            }
+
+            scene(Routes.EnterEmail.name) {
+                EmailEnterScreen(
+                    { navigator.navigate(Routes.Authorization.name) },
+                    { navigator.navigate(Routes.Registration.name) }
+                )
             }
 
             scene(Routes.Authorization.name) {
-                AuthorizationScreen { navigator.popBackStack() }
+                AuthorizationScreen(
+                    { navigator.popBackStack() },
+                    { navigator.navigate(Routes.Main.name) })
             }
 
             scene(Routes.Registration.name) {
-                RegistrationScreen { navigator.popBackStack() }
-            }
-
-            scene(Routes.Finish.name) {
-                FinishScreen()
+                val test = navigator.canGoBack.collectAsState(false)
+                println(test)
+                RegistrationScreen(
+                    { navigator.popBackStack() },
+                    { navigator.navigate(Routes.ChoiceAvatar.name) }
+                )
             }
 
             scene(Routes.ChoiceAvatar.name) {
-                ChoiceAvatarScreen { navigator.popBackStack() }
+                ChoiceAvatarScreen(
+                    { navigator.popBackStack() },
+                    { navigator.navigate(Routes.InputName.name) })
             }
 
             scene(Routes.InputName.name) {
-                InputNameScreen { navigator.popBackStack() }
+                InputNameScreen(
+                    { navigator.popBackStack() },
+                    { navigator.navigate(Routes.Finish.name) }
+                )
+            }
+
+            scene(Routes.Finish.name) {
+                FinishScreen { navigator.navigate(Routes.GoToMain.name) }
             }
 
             scene(Routes.GoToMain.name) {
-                GoToMainScreen()
+                GoToMainScreen { navigator.navigate(Routes.Main.name) }
             }
         }
 

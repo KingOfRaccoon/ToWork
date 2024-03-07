@@ -46,8 +46,9 @@ import viewmodel.UserDataViewModel
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun ChoiceAvatarScreen(
-    userDataViewModel: UserDataViewModel = koinInject(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    navigateToInputName: () -> Unit,
+    userDataViewModel: UserDataViewModel = koinInject()
 ) {
     val imageUser = userDataViewModel.userImageFlow.collectAsState()
     val scrollState = rememberScrollState()
@@ -87,7 +88,7 @@ fun ChoiceAvatarScreen(
 
             LazyVerticalGrid(
                 GridCells.Fixed(4),
-                Modifier.fillMaxWidth().weight(1f),
+                Modifier.fillMaxWidth().weight(1f).padding(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(22.dp)
             ) {
@@ -98,7 +99,9 @@ fun ChoiceAvatarScreen(
                 }
             }
 
-            CustomButton("Далее", Modifier.fillMaxWidth())
+            CustomButton("Далее", Modifier.fillMaxWidth()) {
+                navigateToInputName()
+            }
         }
     }
 }

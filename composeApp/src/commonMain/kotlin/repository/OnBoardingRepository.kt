@@ -1,12 +1,13 @@
 package repository
 
 import androidx.compose.ui.text.buildAnnotatedString
+import model.Message
 import model.OnBoarding
 import model.Track
 import model.TypeUser
 
 class OnBoardingRepository(private val userDataService: UserDataService) {
-    val bullet = "\u2022"
+    private val bullet = "\u2022"
 
     val onBoardings = arrayOf(
         OnBoarding(
@@ -55,7 +56,7 @@ class OnBoardingRepository(private val userDataService: UserDataService) {
     )
 
     val typesUsers = arrayOf(
-        TypeUser("Карьерный Карась", "Получил оффер, начинаю устраиваться"),
+        TypeUser("Карьерный Карась", "Получил оффер, начинаю устраиваться", true),
         TypeUser("Фрешмен", "Фух, устроился! Пора вливаться в коллектив"),
         TypeUser("Легендарный Профи", "Мм? Интересно же, что тут у вас"),
     )
@@ -92,4 +93,16 @@ class OnBoardingRepository(private val userDataService: UserDataService) {
 
     suspend fun getUsersForRating(token: String) =
         userDataService.getUsersForRating(token)
+
+    suspend fun authUserOnToken(token: String) =
+        userDataService.loginWithToken(token)
+
+    suspend fun getLastModules(token: String) =
+        userDataService.getLastModules(token)
+
+    suspend fun updateCompletePage(token: String, idModule: Int) =
+        userDataService.updateCompletePage(token, idModule)
+
+    suspend fun sendMessage(message: String) =
+        userDataService.sendMessage(message)
 }

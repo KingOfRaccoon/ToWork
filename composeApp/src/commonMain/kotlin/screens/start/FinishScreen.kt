@@ -40,8 +40,8 @@ import viewmodel.UserDataViewModel
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FinishScreen(userDataViewModel: UserDataViewModel = koinInject()) {
-    val typesUsers = userDataViewModel.typesUsersFlow.collectAsState()
+fun FinishScreen(viewModel: UserDataViewModel = koinInject(), navigateToGoToMain: () -> Unit) {
+    val typesUsers = viewModel.typesUsersFlow.collectAsState()
 
     Scaffold(Modifier.fillMaxSize().systemBarsPadding(),
         topBar = { TopAppBar(Modifier.fillMaxWidth(), elevation = 0.dp) { } }) {
@@ -63,12 +63,13 @@ fun FinishScreen(userDataViewModel: UserDataViewModel = koinInject()) {
             )
 
             LazyColumn(
-                Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)
+                Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 itemsIndexed(typesUsers.value, { _, item -> item.name }) { index, item ->
 
                     Card(
-                        { if (index == 0) userDataViewModel.updateTypesUsersState(item) },
+                        { if (index == 0) viewModel.updateTypesUsersState(item) },
                         Modifier.fillMaxWidth(),
                         enabled = index == 0,
                         shape = CircleShape,
@@ -94,14 +95,18 @@ fun FinishScreen(userDataViewModel: UserDataViewModel = koinInject()) {
                             CircleCheckbox(
                                 item.state && index == 0,
                                 index == 0
-                            ) { userDataViewModel.updateTypesUsersState(item) }
+                            ) { viewModel.updateTypesUsersState(item) }
                         }
                     }
                 }
             }
+
             Spacer(Modifier.weight(1f))
+
             AnimatedVisibility(typesUsers.value.any { it.state }) {
-                CustomButton("Далее", Modifier.fillMaxWidth())
+                CustomButton("Далее", Modifier.fillMaxWidth()){
+                    navigateToGoToMain()
+                }
             }
         }
     }

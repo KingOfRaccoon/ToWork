@@ -15,7 +15,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,18 +29,30 @@ import elements.CustomText
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
+import util.Resource
 import viewmodel.UserDataViewModel
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun EmailEnterScreen(
-    userDataViewModel: UserDataViewModel = koinInject(),
     navigateToAuthorization: () -> Unit,
-    navigateToRegistration: () -> Unit
+    navigateToRegistration: () -> Unit,
+    viewModel: UserDataViewModel = koinInject(),
 ) {
-    val buttonText = remember { mutableStateOf("Далее") }
-    val email = userDataViewModel.emailFlow.collectAsState()
+    val email = viewModel.emailFlow.collectAsState()
+    val needRegistration = viewModel.needRegistrationFlow.collectAsState()
+    val buttonText = remember {
+        derivedStateOf {
+            when (needRegistration) {
+                is Resource.Error<*> -> "Попропбуйте снова"
+                is Resource.Loading<*> -> "Ожидайте"
+                is Resource.Success<*> -> "Успех!"
+                else -> "Далее"
+            }
+        }
+    }
     val scrollState = rememberScrollState()
+
     Scaffold(
         Modifier.fillMaxSize().systemBarsPadding().padding(horizontal = 16.dp, vertical = 11.dp),
         topBar = { TopAppBarEnterEmail() }
@@ -74,18 +86,26 @@ fun EmailEnterScreen(
             CustomOutlinedTextField(
                 "Email",
                 email,
-                userDataViewModel::setNewEmail,
-                modifier = Modifier.fillMaxWidth()
+                viewModel::setNewEmail,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
             )
 
             Spacer(Modifier.weight(1f))
 
             AnimatedCustomButton(buttonText, Modifier.fillMaxWidth()) {
-                if (listOf(0,1).random() == 1)
-                    navigateToAuthorization()
-                else
-                    navigateToRegistration()
+                viewModel.needRegistration()
             }
+        }
+    }
+
+    if (needRegistration.value != null) {
+        if (needRegistration.value is Resource.Success) {
+            if (needRegistration.value?.data == true)
+                navigateToRegistration().also {
+                    println("navigateToRegistration")
+                }
+            else
+                navigateToAuthorization()
         }
     }
 }

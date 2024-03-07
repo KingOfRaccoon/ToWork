@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -24,23 +25,29 @@ import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
+import util.Resource
 import utils.StarShape
 import viewmodel.UserDataViewModel
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun SplashScreen(navigateToOnBoarding: () -> Unit) {
+fun SplashScreen(
+    navigateToOnBoarding: () -> Unit,
+    navigateToMain: () -> Unit,
+    navigateToEnterEmail: () -> Unit,
+    viewModel: UserDataViewModel = koinInject()
+) {
+    val user = viewModel.userFlow.collectAsState()
     val fractionWidth = remember { mutableFloatStateOf(0.1f) }
+
+    LaunchedEffect(Unit){
+        viewModel.authUserOnToken()
+    }
 
     LaunchedEffect(Unit) {
         animate(0.1f, 1f, animationSpec = tween(1500)) { value, _ ->
             fractionWidth.value = value
         }
-    }
-
-    LaunchedEffect(Unit) {
-        delay(1700)
-        navigateToOnBoarding()
     }
 
     Column(
@@ -66,5 +73,15 @@ fun SplashScreen(navigateToOnBoarding: () -> Unit) {
                     )
             )
         }
+    }
+
+    if (fractionWidth.value == 1f) {
+        if (viewModel.isTokenEmpty())
+            navigateToOnBoarding()
+        else
+            if (user.value is Resource.Success)
+                navigateToMain()
+            else if (user.value is Resource.Error)
+                navigateToEnterEmail()
     }
 }
